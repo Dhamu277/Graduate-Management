@@ -33,14 +33,8 @@ const Dashboard = () => {
   );
 
   const stats = data?.stats || {};
-  const chartData = [
-    { name: 'Jan', value: 400 },
-    { name: 'Feb', value: 300 },
-    { name: 'Mar', value: 200 },
-    { name: 'Apr', value: 278 },
-    { name: 'May', value: 189 },
-    { name: 'Jun', value: 239 },
-  ]; // Mock data for chart layout
+  const trends = data?.trends || { userTrend: '0%', activeUserTrend: '0%', jobTrend: '0%', eventTrend: '0%' };
+  const chartData = data?.chartData || []; // Now populated dynamically from backend
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans text-gray-900">
@@ -57,10 +51,10 @@ const Dashboard = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard icon={<Users className="text-blue-500" />} label="Total Alumni" value={stats.totalAlumni || 0} trend="+12%" />
-            <StatCard icon={<TrendingUp className="text-emerald-500" />} label="Active Users" value={stats.activeUsers || 0} trend="+5%" />
-            <StatCard icon={<Briefcase className="text-purple-500" />} label="Job Posts" value={stats.totalJobPosts || 0} trend="+18%" />
-            <StatCard icon={<Calendar className="text-orange-500" />} label="Upcoming Events" value={stats.totalEvents || 0} trend="-2%" />
+            <StatCard icon={<Users className="text-blue-500" />} label="Total Alumni" value={stats.totalAlumni || 0} trend={trends.userTrend} />
+            <StatCard icon={<TrendingUp className="text-emerald-500" />} label="Active Users" value={stats.activeUsers || 0} trend={trends.activeUserTrend} />
+            <StatCard icon={<Briefcase className="text-purple-500" />} label="Job Posts" value={stats.totalJobPosts || 0} trend={trends.jobTrend} />
+            <StatCard icon={<Calendar className="text-orange-500" />} label="Upcoming Events" value={stats.totalEvents || 0} trend={trends.eventTrend} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
