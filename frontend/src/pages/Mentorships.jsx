@@ -10,22 +10,25 @@ const Mentorships = () => {
   const [mentorships, setMentorships] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('browse'); // browse, my-requests
+  const [activeTab, setActiveTab] = useState('browse'); // browse, my-requests, my-applications
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [mentorshipData, setMentorshipData] = useState({
-    title: '', description: '', category: 'Career Guidance', skills: '', availability: '', mode: 'Online', contactDetails: ''
+    title: '', description: '', category: 'Career Guidance', skills: '', availability: '', mode: 'online', contactDetails: ''
   });
 
   useEffect(() => {
     fetchMentorships();
     if (user.role !== 'Student') {
       fetchMyRequests();
+    } else {
+      fetchMyApplications();
     }
   }, [user]);
 
   const fetchMentorships = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/mentorships');
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get('http://localhost:5000/api/mentorships', config);
       setMentorships(data);
     } catch (error) {
       console.error(error);
@@ -36,8 +39,19 @@ const Mentorships = () => {
 
   const fetchMyRequests = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/mentorships/requests');
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get('http://localhost:5000/api/mentorships/requests', config);
       setRequests(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchMyApplications = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get('http://localhost:5000/api/mentorships/my-applications', config);
+      setRequests(data); // Using the same requests array state for simplicity
     } catch (error) {
       console.error(error);
     }
@@ -45,8 +59,10 @@ const Mentorships = () => {
 
   const handleRequest = async (id) => {
     try {
-      await axios.post(`http://localhost:5000/api/mentorships/${id}/request`, { message: "I would like to be mentored by you." });
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post(`http://localhost:5000/api/mentorships/${id}/request`, { message: "I would like to be mentored by you." }, config);
       alert("Mentorship request sent successfully!");
+      if (user.role === 'Student') fetchMyApplications();
     } catch (error) {
       alert(error.response?.data?.message || "Error sending request");
     }
@@ -54,7 +70,8 @@ const Mentorships = () => {
 
   const updateRequestStatus = async (id, status) => {
     try {
-      await axios.put(`http://localhost:5000/api/mentorships/requests/${id}`, { status });
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.put(`http://localhost:5000/api/mentorships/requests/${id}`, { status }, config);
       fetchMyRequests();
     } catch (error) {
       console.error(error);
@@ -64,9 +81,10 @@ const Mentorships = () => {
   const handleCreateMentorship = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/mentorships', mentorshipData);
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post('http://localhost:5000/api/mentorships', mentorshipData, config);
       setShowCreateModal(false);
-      setMentorshipData({ title: '', description: '', category: 'Career Guidance', skills: '', availability: '', mode: 'Online', contactDetails: '' });
+      setMentorshipData({ title: '', description: '', category: 'Career Guidance', skills: '', availability: '', mode: 'online', contactDetails: '' });
       fetchMentorships();
       alert("Mentorship created successfully!");
     } catch (error) {
@@ -109,10 +127,27 @@ const Mentorships = () => {
                 onClick={() => setActiveTab('my-requests')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${activeTab === 'my-requests' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
-                My Requests 
+                Requests Received
                 {requests.filter(r => r.status === 'Pending').length > 0 && (
                   <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{requests.filter(r => r.status === 'Pending').length}</span>
                 )}
+              </button>
+            </div>
+          )}
+
+          {user.role === 'Student' && (
+            <div className="flex gap-4 mb-6">
+              <button 
+                onClick={() => setActiveTab('browse')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'browse' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                Browse Mentors
+              </button>
+              <button 
+                onClick={() => setActiveTab('my-applications')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${activeTab === 'my-applications' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                My Mentorship Applications
               </button>
             </div>
           )}
@@ -186,7 +221,14 @@ const Mentorships = () => {
                         <p className="text-xs text-gray-500">{req.mentee?.email}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-800">{req.mentorship?.title}</p>
+                        {req.mentorship ? (
+                          <p className="text-sm font-medium text-gray-800">{req.mentorship.title}</p>
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-blue-600">Direct Request</span>
+                            {req.message && <span className="text-xs text-gray-500 italic mt-1 line-clamp-2">"{req.message}"</span>}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -209,6 +251,48 @@ const Mentorships = () => {
                   ))}
                   {requests.length === 0 && (
                     <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No requests found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {activeTab === 'my-applications' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mentorship Post</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mentor</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {requests.map(req => (
+                    <tr key={req._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        {req.mentorship ? (
+                          <p className="font-medium text-gray-900">{req.mentorship.title}</p>
+                        ) : (
+                          <p className="font-bold text-blue-600">Direct Request</p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-gray-800">{req.mentorship ? req.mentorship.mentor?.name : req.directMentor?.name}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-700' :
+                          req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {requests.length === 0 && (
+                    <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">You haven't applied for any mentorships yet.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -254,9 +338,9 @@ const Mentorships = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mode *</label>
                   <select required value={mentorshipData.mode} onChange={e => setMentorshipData({...mentorshipData, mode: e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option>Online</option>
-                    <option>In-Person</option>
-                    <option>Hybrid</option>
+                    <option value="online">Online</option>
+                    <option value="offline">In-Person</option>
+                    <option value="both">Hybrid</option>
                   </select>
                 </div>
               </div>

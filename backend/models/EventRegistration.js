@@ -15,6 +15,9 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: String,
     enum: ['Registered', 'Attended', 'Cancelled'],
     default: 'Registered'
+  },
+  details: {
+    type: String
   }
 }, {
   timestamps: true

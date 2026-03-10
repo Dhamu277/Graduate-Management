@@ -66,7 +66,8 @@ const registerForEvent = async (req, res, next) => {
 
     const registration = await EventRegistration.create({
       event: eventId,
-      attendee: req.user._id
+      attendee: req.user._id,
+      details: req.body.details
     });
 
     res.status(201).json(registration);
@@ -75,8 +76,24 @@ const registerForEvent = async (req, res, next) => {
   }
 };
 
+// @desc    Get event attendees (Admin only)
+// @route   GET /api/events/:id/attendees
+// @access  Private (Management)
+const getEventAttendees = async (req, res, next) => {
+  try {
+    const attendees = await EventRegistration.find({ event: req.params.id })
+      .populate('attendee', 'name email rollNumber role')
+      .sort({ createdAt: -1 });
+    
+    res.json(attendees);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getEvents,
   createEvent,
-  registerForEvent
+  registerForEvent,
+  getEventAttendees
 };

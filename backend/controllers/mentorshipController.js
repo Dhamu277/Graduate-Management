@@ -64,6 +64,36 @@ const requestMentorship = async (req, res, next) => {
   }
 };
 
+// @desc    Request a direct mentorship
+// @route   POST /api/mentorships/request-direct/:mentorId
+// @access  Private (Student)
+const requestDirectMentorship = async (req, res, next) => {
+  try {
+    const mentorId = req.params.mentorId;
+    
+    // Check if a direct request is already pending
+    const existingReq = await MentorshipRequest.findOne({ 
+      directMentor: mentorId, 
+      mentee: req.user._id,
+      status: 'Pending'
+    });
+
+    if (existingReq) {
+      return res.status(400).json({ message: 'A pending request already exists for this mentor.' });
+    }
+
+    const mentorshipRequest = await MentorshipRequest.create({
+      directMentor: mentorId,
+      mentee: req.user._id,
+      message: req.body.message
+    });
+
+    res.status(201).json(mentorshipRequest);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get mentorship requests for mentor
 // @route   GET /api/mentorships/requests
 // @access  Private (Graduate)
@@ -73,8 +103,13 @@ const getMyRequests = async (req, res, next) => {
     const myMentorships = await Mentorship.find({ mentor: req.user._id });
     const mentorshipIds = myMentorships.map(m => m._id);
 
-    // Find requests for these mentorships
-    const requests = await MentorshipRequest.find({ mentorship: { $in: mentorshipIds } })
+    // Find requests for these mentorship posts OR direct requests to this user
+    const requests = await MentorshipRequest.find({ 
+      $or: [
+        { mentorship: { $in: mentorshipIds } },
+        { directMentor: req.user._id }
+      ]
+    })
       .populate('mentorship', 'title')
       .populate('mentee', 'name email rollNumber');
 
@@ -104,10 +139,30 @@ const updateRequestStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Get my applied requests
+// @route   GET /api/mentorships/my-applications
+// @access  Private (Student)
+const getMyAppliedRequests = async (req, res, next) => {
+  try {
+    const requests = await MentorshipRequest.find({ mentee: req.user._id })
+      .populate('mentorship', 'title mentor')
+      .populate({
+         path: 'mentorship',
+         populate: { path: 'mentor', select: 'name' }
+      })
+      .populate('directMentor', 'name email role currentCompany');
+    res.json(requests);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMentorships,
   createMentorship,
   requestMentorship,
+  requestDirectMentorship,
   getMyRequests,
-  updateRequestStatus
+  updateRequestStatus,
+  getMyAppliedRequests
 };

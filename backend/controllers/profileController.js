@@ -40,7 +40,7 @@ const getProfiles = async (req, res, next) => {
 // @access  Private
 const getProfileById = async (req, res, next) => {
   try {
-    const profile = await Profile.findOne({ user: req.params.userId }).populate('user', 'name role rollNumber');
+    const profile = await Profile.findOne({ user: req.params.id }).populate('user', 'name role rollNumber');
 
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });

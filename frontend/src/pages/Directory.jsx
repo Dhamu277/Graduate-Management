@@ -2,13 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
-import { Search, MapPin, Building, Filter } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Search, MapPin, Building, Filter, UserPlus, X } from 'lucide-react';
 
 const Directory = () => {
+  const { user } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [requestMessage, setRequestMessage] = useState('');
 
   useEffect(() => {
     fetchDirectory();
@@ -34,6 +40,24 @@ const Directory = () => {
     p.currentCompany?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.skills?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const initiateRequest = (profileUser) => {
+    setSelectedMentor(profileUser);
+    setRequestMessage(`Hi ${profileUser.name}, I found your profile in the Alumni Directory and would love to ask you a few questions about your experience at ${profileUser.currentCompany || 'your company'}. Would you be open to a brief mentorship connection?`);
+    setShowRequestModal(true);
+  };
+
+  const submitDirectRequest = async (e) => {
+    e.preventDefault();
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post(`http://localhost:5000/api/mentorships/request-direct/${selectedMentor._id}`, { message: requestMessage }, config);
+      alert("Mentorship request sent successfully!");
+      setShowRequestModal(false);
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to send request.");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans text-gray-900">
@@ -110,9 +134,17 @@ const Directory = () => {
                       )}
                     </div>
 
-                    <button className="w-full py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                    <button className="w-full py-2 border border-blue-200 text-blue-700 font-medium hover:bg-blue-50 rounded-lg text-sm transition-colors mb-2">
                       View Profile
                     </button>
+                    {user.role === 'Student' && profile.user?.role === 'Graduate' && (
+                      <button 
+                         onClick={() => initiateRequest(profile.user)}
+                         className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                      >
+                        <UserPlus size={16} /> Request Mentorship
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -127,9 +159,45 @@ const Directory = () => {
 
         </main>
       </div>
+
+      {/* Direct Mentorship Request Modal */}
+      {showRequestModal && selectedMentor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">Request Mentorship</h2>
+              <button onClick={() => setShowRequestModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={submitDirectRequest} className="p-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                  You are sending a direct mentorship request to <span className="font-bold text-gray-900">{selectedMentor.name}</span>. They will receive your message and can choose to accept or decline the connection.
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message to Mentor *</label>
+                <textarea 
+                  required
+                  rows="5" 
+                  value={requestMessage} 
+                  onChange={e => setRequestMessage(e.target.value)} 
+                  className="w-full border p-3 text-sm rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                ></textarea>
+              </div>
+              
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setShowRequestModal(false)} className="px-5 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                  <UserPlus size={16} /> Send Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-import { Users } from 'lucide-react';
 export default Directory;

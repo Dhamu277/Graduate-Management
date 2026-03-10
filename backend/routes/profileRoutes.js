@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getProfile, updateProfile, getDirectory } = require('../controllers/profileController');
+const { getProfileById, updateProfile, getProfiles } = require('../controllers/profileController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
-router.route('/').get(protect, getDirectory);
+router.route('/').get(protect, getProfiles);
 router.route('/me').put(protect, updateProfile);
 
 router.route('/upload-photo')
@@ -32,6 +32,6 @@ router.route('/upload-photo')
     }
   });
 
-router.route('/:id').get(protect, getProfile);
+router.route('/:id').get(protect, getProfileById);
 
 module.exports = router;

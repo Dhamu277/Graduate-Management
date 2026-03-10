@@ -4,7 +4,12 @@ const mentorshipRequestSchema = new mongoose.Schema({
   mentorship: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Mentorship',
-    required: true
+    required: false
+  },
+  directMentor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
   },
   mentee: {
     type: mongoose.Schema.Types.ObjectId,

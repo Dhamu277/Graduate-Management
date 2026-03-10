@@ -19,7 +19,8 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/profiles/${user._id}`);
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get(`http://localhost:5000/api/profiles/${user._id}`, config);
       setProfile(data);
       setFormData({
         email: data.email || '',
@@ -49,7 +50,8 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.put('http://localhost:5000/api/profiles/me', formData);
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.put('http://localhost:5000/api/profiles/me', formData, config);
       setProfile(data);
       setIsEditing(false);
     } catch (error) {
@@ -76,9 +78,13 @@ const Profile = () => {
 
     try {
       setLoading(true);
-      await axios.post('http://localhost:5000/api/profiles/upload-photo', uploadData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const config = { 
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${user.token}`
+        } 
+      };
+      await axios.post('http://localhost:5000/api/profiles/upload-photo', uploadData, config);
       fetchProfile(); // reload profile with new image
     } catch (error) {
        console.error("Error uploading image", error);

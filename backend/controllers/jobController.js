@@ -20,7 +20,7 @@ const getJobs = async (req, res, next) => {
 // @access  Private (Graduate, Management)
 const createJob = async (req, res, next) => {
   try {
-    const { title, company, description, skillsRequired, experience, location, jobType, salary, deadline } = req.body;
+    const { title, company, description, skillsRequired, experience, location, jobType, salary, deadline, applyLink } = req.body;
 
     const job = await JobPost.create({
       title,
@@ -32,6 +32,7 @@ const createJob = async (req, res, next) => {
       jobType,
       salary,
       deadline,
+      applyLink,
       postedBy: req.user._id
     });
 
@@ -84,9 +85,33 @@ const getMyJobApplications = async (req, res, next) => {
   }
 };
 
+// @desc    Delete a job post
+// @route   DELETE /api/jobs/:id
+// @access  Private (Creator only)
+const deleteJob = async (req, res, next) => {
+  try {
+    const job = await JobPost.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Check if user is the creator
+    if (job.postedBy.toString() !== req.user._id.toString() && req.user.role !== 'Management') {
+      return res.status(401).json({ message: 'Not authorized to delete this job post' });
+    }
+
+    await job.deleteOne();
+    res.json({ message: 'Job post removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getJobs,
   createJob,
   applyToJob,
-  getMyJobApplications
+  getMyJobApplications,
+  deleteJob
 };

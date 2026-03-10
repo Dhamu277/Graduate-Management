@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
-import { Briefcase, MapPin, DollarSign, Clock, Plus, Building2, Send, X } from 'lucide-react';
+import { Briefcase, MapPin, IndianRupee, Clock, Plus, Building2, Send, X, ExternalLink, Trash2 } from 'lucide-react';
 
 const Jobs = () => {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [jobData, setJobData] = useState({
-    title: '', company: '', description: '', skillsRequired: '', experience: '', location: '', jobType: 'Full-time', salary: ''
+    title: '', company: '', description: '', skillsRequired: '', experience: '', location: '', jobType: 'Full-time', salary: '', applyLink: ''
   });
 
   useEffect(() => {
@@ -20,7 +20,8 @@ const Jobs = () => {
 
   const fetchJobs = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/jobs');
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get('http://localhost:5000/api/jobs', config);
       setJobs(data);
     } catch (error) {
       console.error(error);
@@ -31,19 +32,33 @@ const Jobs = () => {
 
   const handleApply = async (id) => {
     try {
-      await axios.post(`http://localhost:5000/api/jobs/${id}/apply`, { coverLetter: "I am interested in this role." });
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post(`http://localhost:5000/api/jobs/${id}/apply`, { coverLetter: "I am interested in this role." }, config);
       alert("Application submitted!");
     } catch (error) {
       alert(error.response?.data?.message || "Failed to submit application");
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this job post?")) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.delete(`http://localhost:5000/api/jobs/${id}`, config);
+      fetchJobs();
+    } catch (error) {
+       console.error(error);
+       alert(error.response?.data?.message || "Error deleting job");
+    }
+  };
+
   const handleCreateJob = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/jobs', jobData);
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post('http://localhost:5000/api/jobs', jobData, config);
       setShowCreateModal(false);
-      setJobData({ title: '', company: '', description: '', skillsRequired: '', experience: '', location: '', jobType: 'Full-time', salary: '' });
+      setJobData({ title: '', company: '', description: '', skillsRequired: '', experience: '', location: '', jobType: 'Full-time', salary: '', applyLink: '' });
       fetchJobs();
       alert("Job posted successfully!");
     } catch (error) {
@@ -93,8 +108,16 @@ const Jobs = () => {
                   
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-400" /> {job.location || 'Remote'}</div>
-                    <div className="flex items-center gap-1.5"><DollarSign size={16} className="text-gray-400" /> {job.salary || 'Competitive'}</div>
+                    <div className="flex items-center gap-1.5"><IndianRupee size={16} className="text-gray-400" /> {job.salary || 'Competitive'}</div>
                     <div className="flex items-center gap-1.5"><Clock size={16} className="text-gray-400" /> {job.experience || 'Entry level'}</div>
+                    {(job.applyLink && job.applyLink.trim() !== '') && (
+                      <div className="flex items-center gap-1.5 text-blue-600 hover:underline">
+                        <ExternalLink size={16} /> 
+                        <a href={job.applyLink.startsWith('http') ? job.applyLink : `https://${job.applyLink}`} target="_blank" rel="noreferrer">
+                          Apply Link
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-sm text-gray-600 mb-6 line-clamp-2 pr-4">{job.description}</p>
@@ -103,14 +126,35 @@ const Jobs = () => {
                     <div className="text-xs text-gray-400">
                       Posted by {job.postedBy?.name}
                     </div>
-                    {user.role === 'Student' && (
-                      <button 
-                        onClick={() => handleApply(job._id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors"
-                      >
-                        <Send size={14} /> Apply Now
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {(user.role === 'Student' && job.applyLink && job.applyLink.trim() !== '') && (
+                        <a 
+                          href={job.applyLink.startsWith('http') ? job.applyLink : `https://${job.applyLink}`} target="_blank" rel="noreferrer"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors"
+                        >
+                          <Send size={14} /> Apply Externally
+                        </a>
+                      )}
+
+                      {(user.role === 'Student' && (!job.applyLink || job.applyLink.trim() === '')) && (
+                        <button 
+                          onClick={() => handleApply(job._id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors"
+                        >
+                          <Send size={14} /> Apply Now
+                        </button>
+                      )}
+
+                      {(user.role === 'Management' || user._id === job.postedBy?._id) && (
+                        <button 
+                          onClick={() => handleDelete(job._id)}
+                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors border border-red-100"
+                          title="Delete Post"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -184,6 +228,11 @@ const Jobs = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Salary *</label>
                   <input required type="text" value={jobData.salary} onChange={e => setJobData({...jobData, salary: e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 12 LPA" />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Apply Link (Optional)</label>
+                <input type="url" value={jobData.applyLink} onChange={e => setJobData({...jobData, applyLink: e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://company.com/careers/apply" />
               </div>
               
               <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">

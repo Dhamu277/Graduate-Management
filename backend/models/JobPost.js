@@ -32,6 +32,9 @@ const jobPostSchema = new mongoose.Schema({
   deadline: {
     type: Date
   },
+  applyLink: {
+    type: String
+  },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
