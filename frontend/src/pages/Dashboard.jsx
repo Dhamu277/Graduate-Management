@@ -14,7 +14,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/dashboard');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard`);
         setData(res.data);
       } catch (error) {
         console.error("Dashboard fetch error", error);

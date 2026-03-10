@@ -21,7 +21,7 @@ const Jobs = () => {
   const fetchJobs = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/jobs', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/jobs`, config);
       setJobs(data);
     } catch (error) {
       console.error(error);
@@ -33,7 +33,7 @@ const Jobs = () => {
   const handleApply = async (id) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`http://localhost:5000/api/jobs/${id}/apply`, { coverLetter: "I am interested in this role." }, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/jobs/${id}/apply`, { coverLetter: "I am interested in this role." }, config);
       alert("Application submitted!");
     } catch (error) {
       alert(error.response?.data?.message || "Failed to submit application");
@@ -44,7 +44,7 @@ const Jobs = () => {
     if (!window.confirm("Are you sure you want to delete this job post?")) return;
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.delete(`http://localhost:5000/api/jobs/${id}`, config);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/jobs/${id}`, config);
       fetchJobs();
     } catch (error) {
        console.error(error);
@@ -56,7 +56,7 @@ const Jobs = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post('http://localhost:5000/api/jobs', jobData, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/jobs`, jobData, config);
       setShowCreateModal(false);
       setJobData({ title: '', company: '', description: '', skillsRequired: '', experience: '', location: '', jobType: 'Full-time', salary: '', applyLink: '' });
       fetchJobs();

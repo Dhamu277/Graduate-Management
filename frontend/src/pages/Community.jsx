@@ -17,7 +17,7 @@ const Community = () => {
 
   const fetchPosts = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/posts');
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts`);
       setPosts(data);
     } catch (error) {
       console.error(error);
@@ -30,7 +30,7 @@ const Community = () => {
     e.preventDefault();
     if (!newPost.trim()) return;
     try {
-      await axios.post('http://localhost:5000/api/posts', { text: newPost, type: 'General update' });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/posts`, { text: newPost, type: 'General update' });
       setNewPost('');
       fetchPosts();
     } catch (error) {
@@ -40,7 +40,7 @@ const Community = () => {
 
   const handleLike = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/posts/${id}/like`);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${id}/like`);
       fetchPosts();
     } catch (error) {
       console.error(error);

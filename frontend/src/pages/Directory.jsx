@@ -23,7 +23,7 @@ const Directory = () => {
   const fetchDirectory = async () => {
     setLoading(true);
     try {
-      let url = 'http://localhost:5000/api/profiles';
+      let url = `${import.meta.env.VITE_API_URL}/api/profiles`;
       if (roleFilter) url += `?role=${roleFilter}`;
       
       const { data } = await axios.get(url);
@@ -51,7 +51,7 @@ const Directory = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`http://localhost:5000/api/mentorships/request-direct/${selectedMentor._id}`, { message: requestMessage }, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/mentorships/request-direct/${selectedMentor._id}`, { message: requestMessage }, config);
       alert("Mentorship request sent successfully!");
       setShowRequestModal(false);
     } catch (error) {

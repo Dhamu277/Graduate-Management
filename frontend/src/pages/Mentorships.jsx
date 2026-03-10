@@ -28,7 +28,7 @@ const Mentorships = () => {
   const fetchMentorships = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/mentorships', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/mentorships`, config);
       setMentorships(data);
     } catch (error) {
       console.error(error);
@@ -40,7 +40,7 @@ const Mentorships = () => {
   const fetchMyRequests = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/mentorships/requests', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/mentorships/requests`, config);
       setRequests(data);
     } catch (error) {
       console.error(error);
@@ -50,7 +50,7 @@ const Mentorships = () => {
   const fetchMyApplications = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/mentorships/my-applications', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/mentorships/my-applications`, config);
       setRequests(data); // Using the same requests array state for simplicity
     } catch (error) {
       console.error(error);
@@ -60,7 +60,7 @@ const Mentorships = () => {
   const handleRequest = async (id) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`http://localhost:5000/api/mentorships/${id}/request`, { message: "I would like to be mentored by you." }, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/mentorships/${id}/request`, { message: "I would like to be mentored by you." }, config);
       alert("Mentorship request sent successfully!");
       if (user.role === 'Student') fetchMyApplications();
     } catch (error) {
@@ -71,7 +71,7 @@ const Mentorships = () => {
   const updateRequestStatus = async (id, status) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`http://localhost:5000/api/mentorships/requests/${id}`, { status }, config);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/mentorships/requests/${id}`, { status }, config);
       fetchMyRequests();
     } catch (error) {
       console.error(error);
@@ -82,7 +82,7 @@ const Mentorships = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post('http://localhost:5000/api/mentorships', mentorshipData, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/mentorships`, mentorshipData, config);
       setShowCreateModal(false);
       setMentorshipData({ title: '', description: '', category: 'Career Guidance', skills: '', availability: '', mode: 'online', contactDetails: '' });
       fetchMentorships();

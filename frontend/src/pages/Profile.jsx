@@ -20,7 +20,7 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get(`http://localhost:5000/api/profiles/${user._id}`, config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profiles/${user._id}`, config);
       setProfile(data);
       setFormData({
         email: data.email || '',
@@ -51,7 +51,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.put('http://localhost:5000/api/profiles/me', formData, config);
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profiles/me`, formData, config);
       setProfile(data);
       setIsEditing(false);
     } catch (error) {
@@ -84,7 +84,7 @@ const Profile = () => {
           Authorization: `Bearer ${user.token}`
         } 
       };
-      await axios.post('http://localhost:5000/api/profiles/upload-photo', uploadData, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profiles/upload-photo`, uploadData, config);
       fetchProfile(); // reload profile with new image
     } catch (error) {
        console.error("Error uploading image", error);

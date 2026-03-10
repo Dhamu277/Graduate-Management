@@ -29,7 +29,7 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/events', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/events`, config);
       setEvents(data);
     } catch (error) {
       console.error(error);
@@ -48,7 +48,7 @@ const Events = () => {
          registrationLimit: eventData.registrationLimit ? parseInt(eventData.registrationLimit) : null
       };
       
-      await axios.post('http://localhost:5000/api/events', payload, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/events`, payload, config);
       setShowCreateModal(false);
       setEventData({ name: '', description: '', date: '', time: '', venue: '', category: 'Reunion', registrationLimit: '' });
       fetchEvents();
@@ -69,7 +69,7 @@ const Events = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`http://localhost:5000/api/events/${selectedEventId}/register`, { details: registrationDetails }, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/events/${selectedEventId}/register`, { details: registrationDetails }, config);
       alert("Successfully registered for the event!");
       setShowRegisterModal(false);
       fetchEvents();
@@ -81,7 +81,7 @@ const Events = () => {
   const fetchAttendees = async (eventId, eventName) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get(`http://localhost:5000/api/events/${eventId}/attendees`, config);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/events/${eventId}/attendees`, config);
       setAttendeesList(data);
       setSelectedEventName(eventName);
       setShowAttendeesModal(true);

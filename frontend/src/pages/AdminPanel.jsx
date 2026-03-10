@@ -23,8 +23,8 @@ const AdminPanel = () => {
   const fetchAdminData = async () => {
     try {
       const [usersRes, annRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/admin/users'),
-        axios.get('http://localhost:5000/api/admin/announcements')
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/announcements`)
       ]);
       setUsers(usersRes.data);
       setAnnouncements(annRes.data);
@@ -38,7 +38,7 @@ const AdminPanel = () => {
   const createAnnouncement = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/admin/announcements', annData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/announcements`, annData);
       setAnnData({ title: '', description: '', priority: 'Normal', isPinned: false });
       fetchAdminData();
       alert("Announcement created!");

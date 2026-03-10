@@ -23,7 +23,7 @@ const AIChatbot = () => {
   const initChat = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get('http://localhost:5000/api/chat/session');
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/chat/session`);
       setSessionId(data.session._id);
       setMessages(data.messages);
     } catch (error) {
@@ -43,7 +43,7 @@ const AIChatbot = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/chat/message', {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/chat/message`, {
         sessionId,
         text: userMsg.text
       });
